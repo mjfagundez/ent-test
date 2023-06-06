@@ -14,15 +14,46 @@ import (
 )
 
 func main() {
-	client, err := ent.Open("postgres", "host=<host> port=<port> user=<user> dbname=<database> password=<pass>")
+	client, err := ent.Open("postgres", "host=localhost port=5432 user=postgres dbname=cars password=9415")
 	if err != nil {
 		log.Fatalf("failed opening connection to postgres: %v", err)
 	}
 	defer client.Close()
+	ctx := context.Background()
 	// Run the auto migration tool.
 	if err := client.Schema.Create(context.Background()); err != nil {
 		log.Fatalf("failed creating schema resources: %v", err)
 	}
+	log.Println("Test")
+	if err := client.Schema.Create(ctx); err != nil {
+		log.Fatalf("failed creating schema resources: %v", err)
+	}
+	if _, err = CreateUser(ctx, client); err != nil {
+		log.Fatal(err)
+	}
+	if _, err = QueryUser(ctx, client); err != nil {
+		log.Fatal(err)
+	}
+	a8m, err := CreateCars(ctx, client)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := QueryCars(ctx, a8m); err != nil {
+		log.Fatal(err)
+	}
+	if err := QueryCarUsers(ctx, a8m); err != nil {
+		log.Fatal(err)
+	}
+	if err := CreateGraph(ctx, client); err != nil {
+		log.Fatal(err)
+	}
+	if err := QueryGithub(ctx, client); err != nil {
+		log.Fatal(err)
+	}
+	if err := QueryArielCars(ctx, client); err != nil {
+		log.Fatal(err)
+	}
+
 }
 
 func CreateUser(ctx context.Context, client *ent.Client) (*ent.User, error) {
@@ -36,6 +67,7 @@ func CreateUser(ctx context.Context, client *ent.Client) (*ent.User, error) {
 	}
 	log.Println("user was created: ", u)
 	return u, nil
+
 }
 
 func QueryUser(ctx context.Context, client *ent.Client) (*ent.User, error) {
